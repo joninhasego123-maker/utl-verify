@@ -1,1 +1,14 @@
 
+{
+  "name": "utl-verify",
+  "version": "1.0.0",
+  "description": "UTL Roblox OAuth Verification",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "axios": "^1.7.9"
+  }
+}
