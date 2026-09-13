@@ -21,8 +21,6 @@ const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const GUILD_ID = "1543572035064823889";
 const VERIFIED_ROLE_ID = "1543594745559781376";
 
-const DISCORD_INVITE = "https://discord.gg/cMNtuVWZG";
-
 // =====================================
 // SESSÕES
 // =====================================
@@ -52,7 +50,7 @@ app.get("/", (req, res) => {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>UTL Verification</title>
+  <title>UTL Verify</title>
 
   <style>
     body {
@@ -80,27 +78,21 @@ app.get("/", (req, res) => {
       border-radius: 8px;
       font-weight: bold;
     }
-
-    a:hover {
-      background: #4752C4;
-    }
   </style>
 </head>
 
 <body>
 
   <div class="box">
-
-    <h1>🔐 UTL Verification</h1>
+    <h1>🛡️ UTL Verify</h1>
 
     <p>
-      Clique no botão abaixo para verificar sua conta.
+      Clique abaixo para iniciar sua verificação.
     </p>
 
     <a href="/login">
-      ✅ VERIFICAR
+      ✅ Verificar
     </a>
-
   </div>
 
 </body>
@@ -154,10 +146,7 @@ app.get("/discord/callback", async (req, res) => {
       return res.status(400).send("Sessão inválida ou expirada.");
     }
 
-    // ---------------------------------
-    // TOKEN DISCORD
-    // ---------------------------------
-
+    // Trocar código por token
     const tokenResponse = await axios.post(
       "https://discord.com/api/oauth2/token",
 
@@ -181,10 +170,7 @@ app.get("/discord/callback", async (req, res) => {
     const discordAccessToken =
       tokenResponse.data.access_token;
 
-    // ---------------------------------
-    // USUÁRIO DISCORD
-    // ---------------------------------
-
+    // Pegar usuário Discord
     const discordUserResponse = await axios.get(
       "https://discord.com/api/users/@me",
       {
@@ -204,20 +190,14 @@ app.get("/discord/callback", async (req, res) => {
       discordUser.id
     );
 
-    // ---------------------------------
-    // SALVAR SESSÃO
-    // ---------------------------------
-
+    // Salvar sessão
     sessions.set(state, {
-
       discordUserId: discordUser.id,
-
       createdAt: session.createdAt
-
     });
 
     // =================================
-    // IR PARA ROBLOX
+    // REDIRECIONAR PARA ROBLOX
     // =================================
 
     const robloxParams = new URLSearchParams({
@@ -273,7 +253,6 @@ app.get("/callback", async (req, res) => {
     const session = sessions.get(state);
 
     if (!session || !session.discordUserId) {
-
       return res.status(400).send(
         "Sessão inválida ou expirada."
       );
@@ -321,7 +300,7 @@ app.get("/callback", async (req, res) => {
       tokenResponse.data.access_token;
 
     // =================================
-    // INFORMAÇÕES ROBLOX
+    // PEGAR DADOS DO ROBLOX
     // =================================
 
     const robloxUserResponse =
@@ -349,11 +328,9 @@ app.get("/callback", async (req, res) => {
       robloxUser.preferred_username;
 
     if (!robloxName) {
-
       throw new Error(
         "Username do Roblox não encontrado."
       );
-
     }
 
     console.log(
@@ -425,7 +402,7 @@ app.get("/callback", async (req, res) => {
     } catch (nicknameError) {
 
       console.error(
-        "⚠️ Não foi possível alterar o nickname:",
+        "⚠️ Erro no nickname:",
         nicknameError.response?.data ||
         nicknameError.message
       );
@@ -439,13 +416,12 @@ app.get("/callback", async (req, res) => {
     sessions.delete(state);
 
     // =================================
-    // REDIRECIONAR PARA DISCORD
+    // REDIRECIONAMENTO AUTOMÁTICO
     // =================================
 
     res.send(`
 
 <!DOCTYPE html>
-
 <html>
 
 <head>
@@ -458,23 +434,17 @@ app.get("/callback", async (req, res) => {
 
   <meta
     http-equiv="refresh"
-    content="1;url=${DISCORD_INVITE}"
+    content="1;url=discord://"
   >
 
   <style>
 
     body {
-
       background: #111827;
-
       color: white;
-
       font-family: Arial, sans-serif;
-
       text-align: center;
-
       padding-top: 100px;
-
     }
 
   </style>
@@ -492,7 +462,7 @@ app.get("/callback", async (req, res) => {
   </p>
 
   <p>
-    Redirecionando para o Discord...
+    Abrindo o Discord...
   </p>
 
 </body>
@@ -504,18 +474,14 @@ app.get("/callback", async (req, res) => {
   } catch (error) {
 
     console.error(
-
       "Erro Roblox/Discord:",
-
       error.response?.data ||
       error.message
-
     );
 
     res.status(500).send(`
 
 <!DOCTYPE html>
-
 <html>
 
 <head>
@@ -529,37 +495,23 @@ app.get("/callback", async (req, res) => {
   <style>
 
     body {
-
       background: #111827;
-
       color: white;
-
       font-family: Arial, sans-serif;
-
       text-align: center;
-
       padding-top: 100px;
-
     }
 
     .box {
-
       max-width: 500px;
-
       margin: auto;
-
       background: #1f2937;
-
       padding: 40px;
-
       border-radius: 15px;
-
     }
 
     h1 {
-
       color: #ef4444;
-
     }
 
   </style>
@@ -589,9 +541,7 @@ app.get("/callback", async (req, res) => {
 </html>
 
     `);
-
   }
-
 });
 
 // =====================================
