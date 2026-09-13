@@ -45,13 +45,18 @@ function escapeHTML(text) {
 // =====================================
 
 app.get("/", (req, res) => {
+
   res.send(`
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
   <title>Verificação UTL</title>
 
@@ -62,54 +67,82 @@ app.get("/", (req, res) => {
     }
 
     body {
+
       margin: 0;
+
       min-height: 100vh;
 
       display: flex;
+
       align-items: center;
+
       justify-content: center;
 
+      padding: 20px;
+
       background:
-        radial-gradient(circle at top, #123b72 0%, #081525 45%, #03070d 100%);
+        radial-gradient(
+          circle at top,
+          #123b72 0%,
+          #081525 45%,
+          #03070d 100%
+        );
 
       color: white;
-      font-family: Arial, Helvetica, sans-serif;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
     }
 
     .box {
-      width: 90%;
+
+      width: 100%;
+
       max-width: 480px;
 
-      background: rgba(15, 25, 40, 0.95);
+      background:
+        rgba(15, 25, 40, 0.95);
 
-      border: 1px solid rgba(255,255,255,0.08);
+      padding: 40px;
 
       border-radius: 18px;
 
-      padding: 35px;
-
       text-align: center;
 
+      border:
+        1px solid
+        rgba(255,255,255,0.08);
+
       box-shadow:
-        0 20px 60px rgba(0,0,0,0.45);
+        0 20px 60px
+        rgba(0,0,0,0.45);
+
     }
 
     h1 {
+
       margin: 0 0 12px;
+
       font-size: 30px;
+
     }
 
     p {
+
       color: #cbd5e1;
+
       line-height: 1.5;
+
     }
 
     a {
+
       display: inline-block;
 
       margin-top: 20px;
-
-      padding: 14px 30px;
 
       background: #5865F2;
 
@@ -117,13 +150,18 @@ app.get("/", (req, res) => {
 
       text-decoration: none;
 
+      padding: 15px 30px;
+
       border-radius: 10px;
 
       font-weight: bold;
+
     }
 
     a:hover {
+
       opacity: 0.9;
+
     }
 
   </style>
@@ -134,7 +172,9 @@ app.get("/", (req, res) => {
 
   <div class="box">
 
-    <h1>🛡️ Verificação UTL</h1>
+    <h1>
+      🛡️ Verificação UTL
+    </h1>
 
     <p>
       Clique abaixo para iniciar sua verificação.
@@ -149,7 +189,9 @@ app.get("/", (req, res) => {
 </body>
 
 </html>
+
   `);
+
 });
 
 // =====================================
@@ -158,24 +200,39 @@ app.get("/", (req, res) => {
 
 app.get("/login", (req, res) => {
 
-  const state = crypto.randomBytes(32).toString("hex");
+  const state =
+    crypto.randomBytes(32).toString("hex");
 
   sessions.set(state, {
+
     createdAt: Date.now()
+
   });
 
   const params = new URLSearchParams({
-    client_id: DISCORD_CLIENT_ID,
+
+    client_id:
+      DISCORD_CLIENT_ID,
+
     redirect_uri:
       "https://utl-verify-1.onrender.com/discord/callback",
-    response_type: "code",
-    scope: "identify",
+
+    response_type:
+      "code",
+
+    scope:
+      "identify",
+
     state
+
   });
 
   res.redirect(
+
     `https://discord.com/oauth2/authorize?${params.toString()}`
+
   );
+
 });
 
 // =====================================
@@ -186,67 +243,94 @@ app.get("/discord/callback", async (req, res) => {
 
   try {
 
-    const { code, state } = req.query;
+    const {
+      code,
+      state
+    } = req.query;
 
     if (!code || !state) {
+
       return res.status(400).send(
         "Código ou state inválido."
       );
+
     }
 
-    const session = sessions.get(state);
+    const session =
+      sessions.get(state);
 
     if (!session) {
+
       return res.status(400).send(
         "Sessão inválida ou expirada."
       );
+
     }
 
-    // Trocar código por token
-    const tokenResponse = await axios.post(
+    // =================================
+    // TROCAR CÓDIGO POR TOKEN DISCORD
+    // =================================
 
-      "https://discord.com/api/oauth2/token",
+    const tokenResponse =
+      await axios.post(
 
-      new URLSearchParams({
+        "https://discord.com/api/oauth2/token",
 
-        client_id: DISCORD_CLIENT_ID,
+        new URLSearchParams({
 
-        client_secret: DISCORD_CLIENT_SECRET,
+          client_id:
+            DISCORD_CLIENT_ID,
 
-        grant_type: "authorization_code",
+          client_secret:
+            DISCORD_CLIENT_SECRET,
 
-        code,
+          grant_type:
+            "authorization_code",
 
-        redirect_uri:
-          "https://utl-verify-1.onrender.com/discord/callback"
+          code,
 
-      }),
+          redirect_uri:
+            "https://utl-verify-1.onrender.com/discord/callback"
 
-      {
-        headers: {
-          "Content-Type":
-            "application/x-www-form-urlencoded"
+        }),
+
+        {
+
+          headers: {
+
+            "Content-Type":
+              "application/x-www-form-urlencoded"
+
+          }
+
         }
-      }
 
-    );
+      );
 
     const discordAccessToken =
       tokenResponse.data.access_token;
 
-    // Pegar usuário Discord
-    const discordUserResponse = await axios.get(
+    // =================================
+    // PEGAR USUÁRIO DISCORD
+    // =================================
 
-      "https://discord.com/api/users/@me",
+    const discordUserResponse =
+      await axios.get(
 
-      {
-        headers: {
-          Authorization:
-            `Bearer ${discordAccessToken}`
+        "https://discord.com/api/users/@me",
+
+        {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${discordAccessToken}`
+
+          }
+
         }
-      }
 
-    );
+      );
 
     const discordUser =
       discordUserResponse.data;
@@ -257,7 +341,10 @@ app.get("/discord/callback", async (req, res) => {
       discordUser.id
     );
 
-    // Salvar sessão
+    // =================================
+    // SALVAR SESSÃO
+    // =================================
+
     sessions.set(state, {
 
       discordUserId:
@@ -272,23 +359,24 @@ app.get("/discord/callback", async (req, res) => {
     // IR PARA ROBLOX
     // =================================
 
-    const robloxParams = new URLSearchParams({
+    const robloxParams =
+      new URLSearchParams({
 
-      client_id:
-        ROBLOX_CLIENT_ID,
+        client_id:
+          ROBLOX_CLIENT_ID,
 
-      redirect_uri:
-        ROBLOX_REDIRECT_URI,
+        redirect_uri:
+          ROBLOX_REDIRECT_URI,
 
-      response_type:
-        "code",
+        response_type:
+          "code",
 
-      scope:
-        "openid profile",
+        scope:
+          "openid profile",
 
-      state
+        state
 
-    });
+      });
 
     res.redirect(
 
@@ -299,9 +387,12 @@ app.get("/discord/callback", async (req, res) => {
   } catch (error) {
 
     console.error(
+
       "Erro Discord:",
+
       error.response?.data ||
       error.message
+
     );
 
     res.status(500).send(`
@@ -315,6 +406,7 @@ app.get("/discord/callback", async (req, res) => {
     `);
 
   }
+
 });
 
 // =====================================
@@ -325,7 +417,10 @@ app.get("/callback", async (req, res) => {
 
   try {
 
-    const { code, state } = req.query;
+    const {
+      code,
+      state
+    } = req.query;
 
     if (!code || !state) {
 
@@ -335,9 +430,13 @@ app.get("/callback", async (req, res) => {
 
     }
 
-    const session = sessions.get(state);
+    const session =
+      sessions.get(state);
 
-    if (!session || !session.discordUserId) {
+    if (
+      !session ||
+      !session.discordUserId
+    ) {
 
       return res.status(400).send(
         "Sessão inválida ou expirada."
@@ -352,36 +451,41 @@ app.get("/callback", async (req, res) => {
     // TOKEN ROBLOX
     // =================================
 
-    const tokenResponse = await axios.post(
+    const tokenResponse =
+      await axios.post(
 
-      "https://apis.roblox.com/oauth/v1/token",
+        "https://apis.roblox.com/oauth/v1/token",
 
-      new URLSearchParams({
+        new URLSearchParams({
 
-        client_id:
-          ROBLOX_CLIENT_ID,
+          client_id:
+            ROBLOX_CLIENT_ID,
 
-        client_secret:
-          ROBLOX_CLIENT_SECRET,
+          client_secret:
+            ROBLOX_CLIENT_SECRET,
 
-        grant_type:
-          "authorization_code",
+          grant_type:
+            "authorization_code",
 
-        code,
+          code,
 
-        redirect_uri:
-          ROBLOX_REDIRECT_URI
+          redirect_uri:
+            ROBLOX_REDIRECT_URI
 
-      }),
+        }),
 
-      {
-        headers: {
-          "Content-Type":
-            "application/x-www-form-urlencoded"
+        {
+
+          headers: {
+
+            "Content-Type":
+              "application/x-www-form-urlencoded"
+
+          }
+
         }
-      }
 
-    );
+      );
 
     const robloxAccessToken =
       tokenResponse.data.access_token;
@@ -390,24 +494,29 @@ app.get("/callback", async (req, res) => {
     // DADOS DO ROBLOX
     // =================================
 
-    const robloxUserResponse = await axios.get(
+    const robloxUserResponse =
+      await axios.get(
 
-      "https://apis.roblox.com/oauth/v1/userinfo",
+        "https://apis.roblox.com/oauth/v1/userinfo",
 
-      {
-        headers: {
-          Authorization:
-            `Bearer ${robloxAccessToken}`
+        {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${robloxAccessToken}`
+
+          }
+
         }
-      }
 
-    );
+      );
 
     const robloxUser =
       robloxUserResponse.data;
 
     // =================================
-    // USERNAME
+    // USERNAME ROBLOX
     // =================================
 
     const robloxName =
@@ -435,28 +544,33 @@ app.get("/callback", async (req, res) => {
     );
 
     // =================================
-    // FOTO DO ROBLOX
+    // FOTO DE PERFIL ROBLOX
     // =================================
 
     let avatarUrl = "";
 
     try {
 
-      const avatarResponse = await axios.get(
+      const avatarResponse =
+        await axios.get(
 
-        `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png&isCircular=true`
+          `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png&isCircular=true`
 
-      );
+        );
 
       avatarUrl =
-        avatarResponse.data.data?.[0]?.imageUrl || "";
+        avatarResponse.data.data?.[0]?.imageUrl ||
+        "";
 
     } catch (avatarError) {
 
       console.error(
+
         "⚠️ Erro ao buscar avatar:",
+
         avatarError.response?.data ||
         avatarError.message
+
       );
 
     }
@@ -472,10 +586,14 @@ app.get("/callback", async (req, res) => {
       {},
 
       {
+
         headers: {
+
           Authorization:
             `Bot ${DISCORD_BOT_TOKEN}`
+
         }
+
       }
 
     );
@@ -495,10 +613,14 @@ app.get("/callback", async (req, res) => {
         `https://discord.com/api/v10/guilds/${GUILD_ID}/members/${discordUserId}`,
 
         {
-          nick: robloxName
+
+          nick:
+            robloxName
+
         },
 
         {
+
           headers: {
 
             Authorization:
@@ -508,21 +630,27 @@ app.get("/callback", async (req, res) => {
               "application/json"
 
           }
+
         }
 
       );
 
       console.log(
+
         "✅ Nickname alterado para:",
         robloxName
+
       );
 
     } catch (nicknameError) {
 
       console.error(
+
         "⚠️ Erro no nickname:",
+
         nicknameError.response?.data ||
         nicknameError.message
+
       );
 
     }
@@ -534,7 +662,7 @@ app.get("/callback", async (req, res) => {
     sessions.delete(state);
 
     // =================================
-    // PÁGINA DE SUCESSO
+    // PÁGINA FINAL
     // =================================
 
     res.send(`
@@ -547,10 +675,14 @@ app.get("/callback", async (req, res) => {
 
   <meta charset="UTF-8">
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  <title>Verificação concluída</title>
+  <title>
+    Verificação concluída
+  </title>
 
   <style>
 
@@ -618,7 +750,7 @@ app.get("/callback", async (req, res) => {
 
     .verified {
 
-      font-size: 30px;
+      font-size: 28px;
 
       font-weight: 700;
 
@@ -631,6 +763,8 @@ app.get("/callback", async (req, res) => {
       color: #cbd5e1;
 
       font-size: 16px;
+
+      line-height: 1.5;
 
       margin-bottom: 25px;
 
@@ -671,7 +805,8 @@ app.get("/callback", async (req, res) => {
 
       object-fit: cover;
 
-      background: #1e293b;
+      background:
+        #1e293b;
 
       flex-shrink: 0;
 
@@ -695,7 +830,17 @@ app.get("/callback", async (req, res) => {
 
     }
 
-    .close {
+    .discord {
+
+      color: #94a3b8;
+
+      font-size: 13px;
+
+      margin-top: 3px;
+
+    }
+
+    .opening {
 
       color: #cbd5e1;
 
@@ -732,41 +877,57 @@ app.get("/callback", async (req, res) => {
   <div class="box">
 
     <div class="verified">
-      ✅ Verified!
+
+      ✅ Verificação concluída!
+
     </div>
 
     <div class="description">
-      Sua conta do Roblox foi linkada ao Discord.
+
+      Sua conta do Roblox foi vinculada ao Discord com sucesso.
+
     </div>
 
     <div class="user">
 
       ${
         avatarUrl
-        ? `<img class="avatar"
-                src="${escapeHTML(avatarUrl)}"
-                alt="Avatar do Roblox">`
-        : `<div class="avatar"></div>`
+          ? `
+            <img
+              class="avatar"
+              src="${escapeHTML(avatarUrl)}"
+              alt="Avatar do Roblox"
+            >
+            `
+          : `
+            <div class="avatar"></div>
+            `
       }
 
       <div>
 
         <div class="username">
+
           ${escapeHTML(robloxName)}
+
         </div>
 
         <div class="robloxid">
+
           Roblox ID: ${escapeHTML(robloxId)}
+
         </div>
 
       </div>
 
     </div>
 
-    <div class="close">
+    <div class="opening">
 
       <span id="countdown">
-        Fechando essa aba em 3...
+
+        Abrindo o Discord em 3...
+
       </span>
 
     </div>
@@ -794,7 +955,7 @@ app.get("/callback", async (req, res) => {
         if (seconds > 0) {
 
           countdown.textContent =
-            "Fechando essa aba em " +
+            "Abrindo o Discord em " +
             seconds +
             "...";
 
@@ -803,19 +964,10 @@ app.get("/callback", async (req, res) => {
           clearInterval(timer);
 
           countdown.textContent =
-            "Fechando essa aba...";
+            "Abrindo o Discord...";
 
-          // Tentar fechar a aba
-          window.close();
-
-          // Segunda tentativa
-          setTimeout(() => {
-
-            window.open("", "_self");
-
-            window.close();
-
-          }, 300);
+          window.location.href =
+            "https://discord.com/app";
 
         }
 
@@ -850,13 +1002,43 @@ app.get("/callback", async (req, res) => {
 
   <meta charset="UTF-8">
 
-  <title>Erro na verificação</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    Erro na verificação
+  </title>
+
+  <style>
+
+    body {
+
+      background:
+        #03070d;
+
+      color: white;
+
+      font-family:
+        Arial,
+        sans-serif;
+
+      text-align: center;
+
+      padding-top: 100px;
+
+    }
+
+  </style>
 
 </head>
 
 <body>
 
-  <h1>❌ Erro na verificação</h1>
+  <h1>
+    ❌ Erro na verificação
+  </h1>
 
   <p>
     Não foi possível finalizar sua verificação.
