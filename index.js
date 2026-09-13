@@ -137,13 +137,17 @@ app.get("/discord/callback", async (req, res) => {
     const { code, state } = req.query;
 
     if (!code || !state) {
-      return res.status(400).send("Código ou state inválido.");
+      return res.status(400).send(
+        "Código ou state inválido."
+      );
     }
 
     const session = sessions.get(state);
 
     if (!session) {
-      return res.status(400).send("Sessão inválida ou expirada.");
+      return res.status(400).send(
+        "Sessão inválida ou expirada."
+      );
     }
 
     // Trocar código por token
@@ -197,22 +201,15 @@ app.get("/discord/callback", async (req, res) => {
     });
 
     // =================================
-    // REDIRECIONAR PARA ROBLOX
+    // IR PARA ROBLOX
     // =================================
 
     const robloxParams = new URLSearchParams({
-
       client_id: ROBLOX_CLIENT_ID,
-
-      redirect_uri:
-        ROBLOX_REDIRECT_URI,
-
+      redirect_uri: ROBLOX_REDIRECT_URI,
       response_type: "code",
-
       scope: "openid profile",
-
       state
-
     });
 
     res.redirect(
@@ -266,25 +263,14 @@ app.get("/callback", async (req, res) => {
     // =================================
 
     const tokenResponse = await axios.post(
-
       "https://apis.roblox.com/oauth/v1/token",
 
       new URLSearchParams({
-
-        client_id:
-          ROBLOX_CLIENT_ID,
-
-        client_secret:
-          ROBLOX_CLIENT_SECRET,
-
-        grant_type:
-          "authorization_code",
-
+        client_id: ROBLOX_CLIENT_ID,
+        client_secret: ROBLOX_CLIENT_SECRET,
+        grant_type: "authorization_code",
         code,
-
-        redirect_uri:
-          ROBLOX_REDIRECT_URI
-
+        redirect_uri: ROBLOX_REDIRECT_URI
       }),
 
       {
@@ -293,29 +279,25 @@ app.get("/callback", async (req, res) => {
             "application/x-www-form-urlencoded"
         }
       }
-
     );
 
     const robloxAccessToken =
       tokenResponse.data.access_token;
 
     // =================================
-    // PEGAR DADOS DO ROBLOX
+    // DADOS DO ROBLOX
     // =================================
 
-    const robloxUserResponse =
-      await axios.get(
+    const robloxUserResponse = await axios.get(
+      "https://apis.roblox.com/oauth/v1/userinfo",
 
-        "https://apis.roblox.com/oauth/v1/userinfo",
-
-        {
-          headers: {
-            Authorization:
-              `Bearer ${robloxAccessToken}`
-          }
+      {
+        headers: {
+          Authorization:
+            `Bearer ${robloxAccessToken}`
         }
-
-      );
+      }
+    );
 
     const robloxUser =
       robloxUserResponse.data;
@@ -382,13 +364,11 @@ app.get("/callback", async (req, res) => {
 
         {
           headers: {
-
             Authorization:
               `Bot ${DISCORD_BOT_TOKEN}`,
 
             "Content-Type":
               "application/json"
-
           }
         }
 
@@ -416,7 +396,7 @@ app.get("/callback", async (req, res) => {
     sessions.delete(state);
 
     // =================================
-    // REDIRECIONAMENTO AUTOMÁTICO
+    // SUCESSO + REDIRECIONAMENTO
     // =================================
 
     res.send(`
@@ -434,7 +414,7 @@ app.get("/callback", async (req, res) => {
 
   <meta
     http-equiv="refresh"
-    content="1;url=discord://"
+    content="1;url=https://discord.com/app"
   >
 
   <style>
